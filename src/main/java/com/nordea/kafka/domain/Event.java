@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class Event {
 
-    private Integer number;
+    private String journalId;
 
     private String name = "EventName";
 

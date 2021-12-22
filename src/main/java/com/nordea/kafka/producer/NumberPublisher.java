@@ -16,7 +16,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.List;
 
-import static com.nordea.kafka.stream.KafkaStream.INPUT_TOPIC_NAME;
+import static com.nordea.kafka.processor.KafkaStreamProcessor.INPUT_TOPIC_NAME;
 
 /**
  * @author Radek
@@ -37,9 +37,9 @@ public class NumberPublisher {
         if (randomNumber % 2 == 0) key = "Even";
 
         final Event event = new Event();
-        event.setNumber(randomNumber);
+        event.setJournalId(String.valueOf(randomNumber));
         event.setType(key);
-        
+
         final String value = objectMapper.writeValueAsString(event);
 
         log.info("=========== START ===========");
@@ -75,13 +75,7 @@ public class NumberPublisher {
     }
 
     private void handleFailure(final String key, final String value, final Throwable ex) {
-        log.error("Error Sending the Message and the exception is {}", ex.getMessage());
-        try {
-            throw ex;
-        } catch (final Throwable throwable) {
-            log.error("Error in OnFailure: {}", throwable.getMessage());
-        }
-
+        log.error("Error Sending the Message and the exception with key {} and value {}", key, value, ex.getMessage());
 
     }
 

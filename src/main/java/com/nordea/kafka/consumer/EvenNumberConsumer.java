@@ -6,7 +6,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import static com.nordea.kafka.stream.KafkaStream.OUTPUT_TOPIC_NAME;
+import static com.nordea.kafka.processor.KafkaStreamProcessor.OUTPUT_TOPIC_NAME;
 
 /**
  * @author Radek
@@ -18,9 +18,9 @@ import static com.nordea.kafka.stream.KafkaStream.OUTPUT_TOPIC_NAME;
 public class EvenNumberConsumer {
 
     @KafkaListener(topics = OUTPUT_TOPIC_NAME)
-    public void receive(final ConsumerRecord<String, String> record) {
-        log.info("Received number: {}", record.value());
-        log.info("Received header: {}", record.headers().toString());
+    public void receive(final ConsumerRecord<String, String> eventRecord) {
+        log.info("Received number: {}", eventRecord.value());
+        log.info("Received header: {}", eventRecord.headers().toString());
 
         log.info("=========== END ===========");
     }

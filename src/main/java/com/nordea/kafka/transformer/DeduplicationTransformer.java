@@ -2,7 +2,6 @@ package com.nordea.kafka.transformer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nordea.kafka.domain.Event;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
@@ -12,18 +11,16 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
-import static com.nordea.kafka.stream.KafkaStream.STORE_NAME;
+import static com.nordea.kafka.config.WindowStoreConfig.STORE_NAME;
 
 /**
  * @author Radek
  * @since 2021-12-20
  */
 @Slf4j
-@RequiredArgsConstructor
 public class DeduplicationTransformer<K, V, E> implements Transformer<K, V, KeyValue<K, V>> {
 
     private ProcessorContext context;
-    //autowired
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -32,6 +29,7 @@ public class DeduplicationTransformer<K, V, E> implements Transformer<K, V, KeyV
      * first time
      */
     private WindowStore<String, Long> eventIdStore;
+
 
     private final long leftDurationMs;
     private final long rightDurationMs;
@@ -73,21 +71,21 @@ public class DeduplicationTransformer<K, V, E> implements Transformer<K, V, KeyV
 
         final Event event = objectMapper.readValue(eventId, Event.class);
 
-        final String number = String.valueOf(event.getNumber());
+        final String journalId = event.getJournalId();
 
-        log.info("EVENT ID: {}", number);
+        log.info("EVENT ID: {}", journalId);
 
         if (eventId.isBlank()) {
             return KeyValue.pair(key, value);
         } else {
             final KeyValue<K, V> output;
-            if (isDuplicate(number)) {
+            if (isDuplicate(journalId)) {
                 log.info("Is duplicate!!!!");
                 output = null;
-                updateTimestampOfExistingEventToPreventExpiry(number, context.timestamp());
+                updateTimestampOfExistingEventToPreventExpiry(journalId, context.timestamp());
             } else {
                 output = KeyValue.pair(key, value);
-                rememberNewEvent(number, context.timestamp());
+                rememberNewEvent(journalId, context.timestamp());
             }
             return output;
         }
